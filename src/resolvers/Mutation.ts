@@ -9,6 +9,14 @@ interface CreatePostInputArgs {
   };
 }
 
+interface UpdatePostInputArgs {
+  id: string;
+  input: {
+    title?: string;
+    content?: string;
+  };
+}
+
 interface PostPayloadType {
   userErrors: {
     message: string;
@@ -41,5 +49,48 @@ export const Mutation = {
       },
     });
     return { userErrors: [], post };
+  },
+
+  updatePost: async (
+    _: any,
+    { id, input }: UpdatePostInputArgs,
+    { prisma }: Context,
+  ): Promise<PostPayloadType> => {
+    const { title, content } = input;
+    if (!title && !content) {
+      return {
+        userErrors: [
+          {
+            message: 'You must provide data',
+          },
+        ],
+        post: null,
+      };
+    }
+
+    const existingPost = await prisma.post.findUnique({
+      where: { id: Number(id) },
+    });
+
+    if (!existingPost) {
+      return {
+        userErrors: [
+          {
+            message: 'Post not found',
+          },
+        ],
+        post: null,
+      };
+    }
+
+    const post = await prisma.post.update({
+      where: { id: Number(id) },
+      data: { ...input },
+    });
+
+    return {
+      userErrors: [],
+      post,
+    };
   },
 };
