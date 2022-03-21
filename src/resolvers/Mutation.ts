@@ -17,6 +17,10 @@ interface UpdatePostInputArgs {
   };
 }
 
+interface DeletePostInputArgs {
+  postId: string;
+}
+
 interface PostPayloadType {
   userErrors: {
     message: string;
@@ -91,6 +95,40 @@ export const Mutation = {
     return {
       userErrors: [],
       post,
+    };
+  },
+
+  deletePost: async (
+    _: any,
+    { postId }: DeletePostInputArgs,
+    { prisma }: Context,
+  ): Promise<PostPayloadType> => {
+    const post = await prisma.post.findUnique({
+      where: {
+        id: Number(postId),
+      },
+    });
+
+    if (!post) {
+      return {
+        userErrors: [
+          {
+            message: 'Post not found',
+          },
+        ],
+        post: null,
+      };
+    }
+
+    const deletedPost = await prisma.post.delete({
+      where: {
+        id: Number(postId),
+      },
+    });
+
+    return {
+      userErrors: [],
+      post: deletedPost,
     };
   },
 };
