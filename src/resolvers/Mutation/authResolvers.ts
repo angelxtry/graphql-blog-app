@@ -1,4 +1,3 @@
-import { User } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import JWT from 'jsonwebtoken';
 import validator from 'validator';
@@ -25,7 +24,7 @@ interface AuthPayloadType {
   userErrors: {
     message: string;
   }[];
-  user: User | null;
+  success: boolean;
 }
 
 interface SignInPayloadType {
@@ -38,7 +37,7 @@ interface SignInPayloadType {
 const saltRounds = 10;
 
 export const authResolvers = {
-  signup: async (
+  signUp: async (
     _: any,
     { input: { name, email, password } }: SignupInputArgs,
     { prisma }: Context,
@@ -47,7 +46,7 @@ export const authResolvers = {
     if (!isEmail) {
       return {
         userErrors: [{ message: 'Invalid email' }],
-        user: null,
+        success: false,
       };
     }
 
@@ -55,14 +54,14 @@ export const authResolvers = {
     if (!isValidPassword) {
       return {
         userErrors: [{ message: 'Password too short' }],
-        user: null,
+        success: false,
       };
     }
 
     if (!name && !password) {
       return {
         userErrors: [{ message: 'You must provide data' }],
-        user: null,
+        success: false,
       };
     }
 
@@ -77,11 +76,11 @@ export const authResolvers = {
     if (existedUser) {
       return {
         userErrors: [{ message: 'Already exist' }],
-        user: null,
+        success: false,
       };
     }
 
-    const user = await prisma.user.create({
+    await prisma.user.create({
       data: {
         name,
         email,
@@ -91,7 +90,7 @@ export const authResolvers = {
 
     return {
       userErrors: [],
-      user,
+      success: true,
     };
   },
 
