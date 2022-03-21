@@ -28,7 +28,7 @@ interface PostPayloadType {
   post: Post | null;
 }
 
-export const Mutation = {
+export const postResolvers = {
   createPost: async (
     _: any,
     { input: { title, content } }: CreatePostInputArgs,
