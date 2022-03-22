@@ -6,7 +6,8 @@
   "scripts": {
     "start:dev": "NODE_ENV=development ts-node-dev --transpile-only --respawn -r tsconfig-paths/register --watch ./src/**/*.pug,./src/**/*.graphql --trace-warnings --trace-uncaught -- ./src/index.ts",
     "start": "NODE_ENV=production ts-node --transpile-only -r tsconfig-paths/register src/index.js",
-    "watch": "tsc --watch"
+    "watch": "tsc --watch",
+    "test": "jest"
   },
   "dependencies": {
     "@prisma/client": "3.11.0",
@@ -19,6 +20,7 @@
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.0",
+    "@types/jest": "^27.4.1",
     "@types/jsonwebtoken": "^8.5.8",
     "@types/validator": "^13.7.1",
     "@typescript-eslint/eslint-plugin": "^5.15.0",
@@ -27,7 +29,9 @@
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-simple-import-sort": "^7.0.0",
+    "jest": "^27.5.1",
     "prettier": "^2.6.0",
+    "ts-jest": "^27.1.3",
     "ts-node-dev": "^1.1.8",
     "tsconfig-paths": "^3.14.0",
     "typescript": "^4.6.2"
