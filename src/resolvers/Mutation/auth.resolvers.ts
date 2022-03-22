@@ -10,6 +10,7 @@ interface SignupInputArgs {
     name: string;
     email: string;
     password: string;
+    bio: string;
   };
 }
 
@@ -39,7 +40,7 @@ const saltRounds = 10;
 export const authResolvers = {
   signUp: async (
     _: any,
-    { input: { name, email, password } }: SignupInputArgs,
+    { input: { name, email, password, bio } }: SignupInputArgs,
     { prisma }: Context,
   ): Promise<SignUpPayloadType> => {
     const isEmail = validator.isEmail(email);
@@ -58,7 +59,7 @@ export const authResolvers = {
       };
     }
 
-    if (!name && !password) {
+    if (!name && !password && !bio) {
       return {
         userErrors: [{ message: 'You must provide data' }],
         success: false,
@@ -80,11 +81,18 @@ export const authResolvers = {
       };
     }
 
-    await prisma.user.create({
+    const user = await prisma.user.create({
       data: {
         name,
         email,
         password: hash,
+      },
+    });
+
+    await prisma.profile.create({
+      data: {
+        bio,
+        userId: user.id,
       },
     });
 
@@ -112,7 +120,6 @@ export const authResolvers = {
     }
 
     const isValid = await bcrypt.compare(password, user.password);
-    console.log('isValid', isValid);
     if (!isValid) {
       return {
         userErrors: [{ message: 'SignIn fail' }],
