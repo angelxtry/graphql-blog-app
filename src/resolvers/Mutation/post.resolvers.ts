@@ -1,6 +1,7 @@
 import { Post } from '@prisma/client';
 
 import { Context } from '@/index';
+import { canUserMutatePost } from '@/utils/can-user-mutate-post';
 
 interface CreatePostInputArgs {
   input: {
@@ -43,11 +44,7 @@ export const postResolvers = {
 
     if (!title || !content) {
       return {
-        userErrors: [
-          {
-            message: 'You must provide data',
-          },
-        ],
+        userErrors: [{ message: 'You must provide data' }],
         post: null,
       };
     }
@@ -65,16 +62,19 @@ export const postResolvers = {
   updatePost: async (
     _: any,
     { id, input }: UpdatePostInputArgs,
-    { prisma }: Context,
+    { prisma, userInfo }: Context,
   ): Promise<PostPayloadType> => {
+    if (!userInfo.userId) {
+      return {
+        userErrors: [{ message: 'Not authorize' }],
+        post: null,
+      };
+    }
+
     const { title, content } = input;
     if (!title && !content) {
       return {
-        userErrors: [
-          {
-            message: 'You must provide data',
-          },
-        ],
+        userErrors: [{ message: 'You must provide data' }],
         post: null,
       };
     }
@@ -85,11 +85,20 @@ export const postResolvers = {
 
     if (!existingPost) {
       return {
-        userErrors: [
-          {
-            message: 'Post not found',
-          },
-        ],
+        userErrors: [{ message: 'Post not found' }],
+        post: null,
+      };
+    }
+
+    const canUpdate = await canUserMutatePost({
+      userId: userInfo.userId,
+      postId: existingPost.id,
+      prisma,
+    });
+
+    if (!canUpdate) {
+      return {
+        userErrors: [{ message: 'Not authorize' }],
         post: null,
       };
     }
@@ -108,8 +117,15 @@ export const postResolvers = {
   deletePost: async (
     _: any,
     { postId }: DeletePostInputArgs,
-    { prisma }: Context,
+    { prisma, userInfo }: Context,
   ): Promise<PostPayloadType> => {
+    if (!userInfo.userId) {
+      return {
+        userErrors: [{ message: 'Not authorize' }],
+        post: null,
+      };
+    }
+
     const post = await prisma.post.findUnique({
       where: {
         id: Number(postId),
@@ -118,11 +134,20 @@ export const postResolvers = {
 
     if (!post) {
       return {
-        userErrors: [
-          {
-            message: 'Post not found',
-          },
-        ],
+        userErrors: [{ message: 'Post not found' }],
+        post: null,
+      };
+    }
+
+    const canDelete = await canUserMutatePost({
+      userId: userInfo.userId,
+      postId: post.id,
+      prisma,
+    });
+
+    if (!canDelete) {
+      return {
+        userErrors: [{ message: 'Not authorize' }],
         post: null,
       };
     }
