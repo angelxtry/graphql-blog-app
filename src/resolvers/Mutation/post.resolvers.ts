@@ -22,6 +22,10 @@ interface DeletePostInputArgs {
   postId: string;
 }
 
+interface PostIdInputArgs {
+  postId: string;
+}
+
 interface PostPayloadType {
   userErrors: {
     message: string;
@@ -161,6 +165,112 @@ export const postResolvers = {
     return {
       userErrors: [],
       post: deletedPost,
+    };
+  },
+
+  publishPost: async (
+    _: any,
+    { postId }: PostIdInputArgs,
+    { prisma, userInfo: { userId } }: Context,
+  ): Promise<PostPayloadType> => {
+    if (!userId) {
+      return {
+        userErrors: [{ message: 'Not authorize' }],
+        post: null,
+      };
+    }
+
+    const post = await prisma.post.findUnique({
+      where: {
+        id: Number(postId),
+      },
+    });
+
+    if (!post) {
+      return {
+        userErrors: [{ message: 'Not found post' }],
+        post: null,
+      };
+    }
+
+    const canPublish = canUserMutatePost({
+      userId,
+      postId: post.id,
+      prisma,
+    });
+
+    if (!canPublish) {
+      return {
+        userErrors: [{ message: 'Not authorize' }],
+        post: null,
+      };
+    }
+
+    const publishedPost = await prisma.post.update({
+      where: {
+        id: post.id,
+      },
+      data: {
+        published: true,
+      },
+    });
+
+    return {
+      userErrors: [],
+      post: publishedPost,
+    };
+  },
+
+  unPublishPost: async (
+    _: any,
+    { postId }: PostIdInputArgs,
+    { prisma, userInfo: { userId } }: Context,
+  ): Promise<PostPayloadType> => {
+    if (!userId) {
+      return {
+        userErrors: [{ message: 'Not authorize' }],
+        post: null,
+      };
+    }
+
+    const post = await prisma.post.findUnique({
+      where: {
+        id: Number(postId),
+      },
+    });
+
+    if (!post) {
+      return {
+        userErrors: [{ message: 'Not found post' }],
+        post: null,
+      };
+    }
+
+    const canPublish = canUserMutatePost({
+      userId,
+      postId: post.id,
+      prisma,
+    });
+
+    if (!canPublish) {
+      return {
+        userErrors: [{ message: 'Not authorize' }],
+        post: null,
+      };
+    }
+
+    const unPublishedPost = await prisma.post.update({
+      where: {
+        id: post.id,
+      },
+      data: {
+        published: false,
+      },
+    });
+
+    return {
+      userErrors: [],
+      post: unPublishedPost,
     };
   },
 };
