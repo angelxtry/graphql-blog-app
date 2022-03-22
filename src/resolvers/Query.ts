@@ -1,6 +1,10 @@
-import { Post, User } from '@prisma/client';
+import { Post, Profile, User } from '@prisma/client';
 
 import { Context } from '@/index';
+
+interface UserIdInputArgs {
+  userId: string;
+}
 
 export const Query = {
   me: async (
@@ -23,6 +27,18 @@ export const Query = {
           createdAt: 'desc',
         },
       ],
+    });
+  },
+
+  profile: async (
+    _: any,
+    { userId }: UserIdInputArgs,
+    { prisma }: Context,
+  ): Promise<Profile | null> => {
+    return prisma.profile.findUnique({
+      where: {
+        userId: Number(userId),
+      },
     });
   },
 };
