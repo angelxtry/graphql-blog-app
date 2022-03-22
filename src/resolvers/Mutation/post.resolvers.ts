@@ -32,8 +32,15 @@ export const postResolvers = {
   createPost: async (
     _: any,
     { input: { title, content } }: CreatePostInputArgs,
-    { prisma }: Context,
+    { prisma, userInfo }: Context,
   ): Promise<PostPayloadType> => {
+    if (!userInfo.userId) {
+      return {
+        userErrors: [{ message: 'Not authorize' }],
+        post: null,
+      };
+    }
+
     if (!title || !content) {
       return {
         userErrors: [
@@ -49,7 +56,7 @@ export const postResolvers = {
       data: {
         title,
         content,
-        authorId: 1,
+        authorId: userInfo.userId,
       },
     });
     return { userErrors: [], post };
