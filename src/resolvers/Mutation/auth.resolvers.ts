@@ -20,7 +20,7 @@ interface SignInInputArgs {
   };
 }
 
-interface AuthPayloadType {
+interface SignUpPayloadType {
   userErrors: {
     message: string;
   }[];
@@ -41,7 +41,7 @@ export const authResolvers = {
     _: any,
     { input: { name, email, password } }: SignupInputArgs,
     { prisma }: Context,
-  ): Promise<AuthPayloadType> => {
+  ): Promise<SignUpPayloadType> => {
     const isEmail = validator.isEmail(email);
     if (!isEmail) {
       return {
