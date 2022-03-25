@@ -40,6 +40,44 @@ export const typeDefs = gql`
     user: User!
   }
 
+  interface ErrorType {
+    message: String!
+  }
+
+  type SignUpResultSuccess {
+    success: Boolean!
+  }
+
+  type SignUpInvalidInputError implements ErrorType {
+    message: String!
+  }
+
+  type SignUpAlreadyExistError implements ErrorType {
+    message: String!
+  }
+
+  union SignUpPayload =
+      SignUpResultSuccess
+    | SignUpInvalidInputError
+    | SignUpAlreadyExistError
+
+  type SignInResultSuccess {
+    token: String!
+  }
+
+  type SignInUserNotFoundError implements ErrorType {
+    message: String!
+  }
+
+  type SignInInvalidPasswordError implements ErrorType {
+    message: String!
+  }
+
+  union SignInPayload =
+      SignInResultSuccess
+    | SignInUserNotFoundError
+    | SignInInvalidPasswordError
+
   type UserError {
     message: String!
   }
@@ -47,16 +85,6 @@ export const typeDefs = gql`
   type PostPayload {
     userErrors: [UserError!]!
     post: Post
-  }
-
-  type SignUpPayload {
-    userErrors: [UserError!]!
-    success: Boolean!
-  }
-
-  type SignInPayload {
-    userErrors: [UserError!]!
-    token: String
   }
 
   input CreatePostInput {

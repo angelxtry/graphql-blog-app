@@ -4,65 +4,43 @@ import validator from 'validator';
 
 import { Context } from '@/index';
 import { JWT_SECRET } from '@/jwt-secret';
-
-interface SignupInputArgs {
-  input: {
-    name: string;
-    email: string;
-    password: string;
-    bio: string;
-  };
-}
-
-interface SignInInputArgs {
-  input: {
-    email: string;
-    password: string;
-  };
-}
-
-interface SignUpPayloadType {
-  userErrors: {
-    message: string;
-  }[];
-  success: boolean;
-}
-
-interface SignInPayloadType {
-  userErrors: {
-    message: string;
-  }[];
-  token: string | null;
-}
+import {
+  SignInInputArgs,
+  SignInPayloadType,
+  SignInResultEnum,
+  SignUpInputArgs,
+  SignUpPayloadType,
+  SignUpResultEnum,
+} from '@/types/auth';
 
 const saltRounds = 10;
 
 export const authResolvers = {
   signUp: async (
     _: any,
-    { input: { name, email, password, bio } }: SignupInputArgs,
+    { input: { name, email, password, bio } }: SignUpInputArgs,
     { prisma }: Context,
   ): Promise<SignUpPayloadType> => {
     const isEmail = validator.isEmail(email);
     if (!isEmail) {
       return {
-        userErrors: [{ message: 'Invalid email' }],
-        success: false,
+        __typename: SignUpResultEnum.SignUpInvalidInputError,
+        message: 'email error',
       };
     }
 
     const isValidPassword = validator.isLength(password, { min: 5 });
     if (!isValidPassword) {
       return {
-        userErrors: [{ message: 'Password too short' }],
-        success: false,
+        __typename: SignUpResultEnum.SignUpInvalidInputError,
+        message: 'password error',
       };
     }
 
     if (!name && !password && !bio) {
       return {
-        userErrors: [{ message: 'You must provide data' }],
-        success: false,
+        __typename: SignUpResultEnum.SignUpInvalidInputError,
+        message: 'all input data error',
       };
     }
 
@@ -76,8 +54,8 @@ export const authResolvers = {
 
     if (existedUser) {
       return {
-        userErrors: [{ message: 'Already exist' }],
-        success: false,
+        __typename: SignUpResultEnum.SignUpAlreadyExistError,
+        message: 'user already exist error',
       };
     }
 
@@ -97,7 +75,7 @@ export const authResolvers = {
     });
 
     return {
-      userErrors: [],
+      __typename: SignUpResultEnum.SignUpResultSuccess,
       success: true,
     };
   },
@@ -114,16 +92,16 @@ export const authResolvers = {
     });
     if (!user) {
       return {
-        userErrors: [{ message: 'User not found' }],
-        token: null,
+        __typename: SignInResultEnum.SignInUserNotFoundError,
+        message: 'not found user',
       };
     }
 
     const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) {
       return {
-        userErrors: [{ message: 'SignIn fail' }],
-        token: null,
+        __typename: SignInResultEnum.SignInInvalidPasswordError,
+        message: 'invalid password',
       };
     }
 
@@ -137,7 +115,7 @@ export const authResolvers = {
     );
 
     return {
-      userErrors: [],
+      __typename: SignInResultEnum.SignInResultSuccess,
       token,
     };
   },
