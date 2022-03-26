@@ -1,55 +1,31 @@
-import { Post } from '@prisma/client';
-
 import { Context } from '@/index';
+import {
+  CreatePostInputArgs,
+  CreatePostPayloadType,
+  PostIdInputArgs,
+  PostMutationResultEnum,
+  PostPayloadType,
+  UpdatePostInputArgs,
+} from '@/types/post';
 import { canUserMutatePost } from '@/utils/can-user-mutate-post';
-
-interface CreatePostInputArgs {
-  input: {
-    title: string;
-    content: string;
-  };
-}
-
-interface UpdatePostInputArgs {
-  id: string;
-  input: {
-    title?: string;
-    content?: string;
-  };
-}
-
-interface DeletePostInputArgs {
-  postId: string;
-}
-
-interface PostIdInputArgs {
-  postId: string;
-}
-
-interface PostPayloadType {
-  userErrors: {
-    message: string;
-  }[];
-  post: Post | null;
-}
 
 export const postResolvers = {
   createPost: async (
     _: any,
     { input: { title, content } }: CreatePostInputArgs,
     { prisma, userInfo }: Context,
-  ): Promise<PostPayloadType> => {
+  ): Promise<CreatePostPayloadType> => {
     if (!userInfo.userId) {
       return {
-        userErrors: [{ message: 'Not authorize' }],
-        post: null,
+        __typename: PostMutationResultEnum.NotAuthorizedError,
+        message: 'not authorized',
       };
     }
 
     if (!title || !content) {
       return {
-        userErrors: [{ message: 'You must provide data' }],
-        post: null,
+        __typename: PostMutationResultEnum.InvalidInputError,
+        message: 'no required data',
       };
     }
 
@@ -60,7 +36,10 @@ export const postResolvers = {
         authorId: userInfo.userId,
       },
     });
-    return { userErrors: [], post };
+    return {
+      __typename: PostMutationResultEnum.PostMutationResultSuccess,
+      post,
+    };
   },
 
   updatePost: async (
@@ -70,16 +49,16 @@ export const postResolvers = {
   ): Promise<PostPayloadType> => {
     if (!userInfo.userId) {
       return {
-        userErrors: [{ message: 'Not authorize' }],
-        post: null,
+        __typename: PostMutationResultEnum.NotAuthorizedError,
+        message: 'not authorized',
       };
     }
 
     const { title, content } = input;
     if (!title && !content) {
       return {
-        userErrors: [{ message: 'You must provide data' }],
-        post: null,
+        __typename: PostMutationResultEnum.InvalidInputError,
+        message: 'no required data',
       };
     }
 
@@ -89,8 +68,8 @@ export const postResolvers = {
 
     if (!existingPost) {
       return {
-        userErrors: [{ message: 'Post not found' }],
-        post: null,
+        __typename: PostMutationResultEnum.NotFoundPostError,
+        message: 'not found post',
       };
     }
 
@@ -102,8 +81,8 @@ export const postResolvers = {
 
     if (!canUpdate) {
       return {
-        userErrors: [{ message: 'Not authorize' }],
-        post: null,
+        __typename: PostMutationResultEnum.NotOwnPostError,
+        message: 'not own post',
       };
     }
 
@@ -113,20 +92,20 @@ export const postResolvers = {
     });
 
     return {
-      userErrors: [],
+      __typename: PostMutationResultEnum.PostMutationResultSuccess,
       post,
     };
   },
 
   deletePost: async (
     _: any,
-    { postId }: DeletePostInputArgs,
+    { postId }: PostIdInputArgs,
     { prisma, userInfo }: Context,
   ): Promise<PostPayloadType> => {
     if (!userInfo.userId) {
       return {
-        userErrors: [{ message: 'Not authorize' }],
-        post: null,
+        __typename: PostMutationResultEnum.NotAuthorizedError,
+        message: 'not authorized',
       };
     }
 
@@ -138,8 +117,8 @@ export const postResolvers = {
 
     if (!post) {
       return {
-        userErrors: [{ message: 'Post not found' }],
-        post: null,
+        __typename: PostMutationResultEnum.NotFoundPostError,
+        message: 'not found post',
       };
     }
 
@@ -151,8 +130,8 @@ export const postResolvers = {
 
     if (!canDelete) {
       return {
-        userErrors: [{ message: 'Not authorize' }],
-        post: null,
+        __typename: PostMutationResultEnum.NotOwnPostError,
+        message: 'not own post',
       };
     }
 
@@ -163,7 +142,7 @@ export const postResolvers = {
     });
 
     return {
-      userErrors: [],
+      __typename: PostMutationResultEnum.PostMutationResultSuccess,
       post: deletedPost,
     };
   },
@@ -175,8 +154,8 @@ export const postResolvers = {
   ): Promise<PostPayloadType> => {
     if (!userId) {
       return {
-        userErrors: [{ message: 'Not authorize' }],
-        post: null,
+        __typename: PostMutationResultEnum.NotAuthorizedError,
+        message: 'not authorized',
       };
     }
 
@@ -188,8 +167,8 @@ export const postResolvers = {
 
     if (!post) {
       return {
-        userErrors: [{ message: 'Not found post' }],
-        post: null,
+        __typename: PostMutationResultEnum.NotFoundPostError,
+        message: 'not found post',
       };
     }
 
@@ -201,8 +180,8 @@ export const postResolvers = {
 
     if (!canPublish) {
       return {
-        userErrors: [{ message: 'Not authorize' }],
-        post: null,
+        __typename: PostMutationResultEnum.NotOwnPostError,
+        message: 'not own post',
       };
     }
 
@@ -216,7 +195,7 @@ export const postResolvers = {
     });
 
     return {
-      userErrors: [],
+      __typename: PostMutationResultEnum.PostMutationResultSuccess,
       post: publishedPost,
     };
   },
@@ -228,8 +207,8 @@ export const postResolvers = {
   ): Promise<PostPayloadType> => {
     if (!userId) {
       return {
-        userErrors: [{ message: 'Not authorize' }],
-        post: null,
+        __typename: PostMutationResultEnum.NotAuthorizedError,
+        message: 'not authorized',
       };
     }
 
@@ -241,8 +220,8 @@ export const postResolvers = {
 
     if (!post) {
       return {
-        userErrors: [{ message: 'Not found post' }],
-        post: null,
+        __typename: PostMutationResultEnum.NotFoundPostError,
+        message: 'not found post',
       };
     }
 
@@ -254,8 +233,8 @@ export const postResolvers = {
 
     if (!canPublish) {
       return {
-        userErrors: [{ message: 'Not authorize' }],
-        post: null,
+        __typename: PostMutationResultEnum.NotOwnPostError,
+        message: 'not own post',
       };
     }
 
@@ -269,7 +248,7 @@ export const postResolvers = {
     });
 
     return {
-      userErrors: [],
+      __typename: PostMutationResultEnum.PostMutationResultSuccess,
       post: unPublishedPost,
     };
   },

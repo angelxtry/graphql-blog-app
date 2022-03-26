@@ -15,7 +15,7 @@ export enum SignUpResultEnum {
   SignUpAlreadyExistError = 'SignUpAlreadyExistError',
 }
 
-export interface SignUpResultSuccessType {
+interface SignUpResultSuccess {
   __typename: string;
   success: boolean;
 }
@@ -25,7 +25,7 @@ type SignUpInvalidInputError = ErrorType;
 type SignUpAlreadyExistError = ErrorType;
 
 export type SignUpPayloadType =
-  | SignUpResultSuccessType
+  | SignUpResultSuccess
   | SignUpInvalidInputError
   | SignUpAlreadyExistError;
 

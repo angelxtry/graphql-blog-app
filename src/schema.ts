@@ -8,7 +8,7 @@ export const typeDefs = gql`
   }
 
   type Mutation {
-    createPost(input: CreatePostInput!): PostPayload!
+    createPost(input: CreatePostInput!): CreatePostPayloadType!
     updatePost(id: ID!, input: UpdatePostInput!): PostPayload!
     deletePost(postId: ID!): PostPayload!
     publishPost(postId: ID!): PostPayload!
@@ -82,10 +82,34 @@ export const typeDefs = gql`
     message: String!
   }
 
-  type PostPayload {
-    userErrors: [UserError!]!
-    post: Post
+  type PostMutationResultSuccess {
+    post: Post!
   }
+
+  type NotAuthorizedError implements ErrorType {
+    message: String!
+  }
+  type InvalidInputError implements ErrorType {
+    message: String!
+  }
+  type NotFoundPostError implements ErrorType {
+    message: String!
+  }
+  type NotOwnPostError implements ErrorType {
+    message: String!
+  }
+
+  union CreatePostPayload =
+      PostMutationResultSuccess
+    | NotAuthorizedError
+    | InvalidInputError
+
+  union PostPayload =
+      PostMutationResultSuccess
+    | NotAuthorizedError
+    | InvalidInputError
+    | NotFoundPostError
+    | NotOwnPostError
 
   input CreatePostInput {
     title: String!
