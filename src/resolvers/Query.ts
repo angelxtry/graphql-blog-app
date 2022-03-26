@@ -1,6 +1,7 @@
 import { Post, Profile, User } from '@prisma/client';
 
 import { Context } from '@/index';
+import { PostIdInputArgs } from '@/types/post';
 
 interface UserIdInputArgs {
   userId: string;
@@ -17,6 +18,16 @@ export const Query = {
     }
     return prisma.user.findUnique({
       where: { id: userId },
+    });
+  },
+
+  post: (
+    _: any,
+    { postId }: PostIdInputArgs,
+    { prisma }: Context,
+  ): Promise<Post | null> => {
+    return prisma.post.findUnique({
+      where: { id: Number(postId) },
     });
   },
 

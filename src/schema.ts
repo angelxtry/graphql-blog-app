@@ -4,6 +4,7 @@ export const typeDefs = gql`
   type Query {
     me: User
     posts: [Post!]!
+    post(postId: ID!): Post
     profile(userId: ID!): Profile
   }
 
@@ -23,7 +24,7 @@ export const typeDefs = gql`
     content: String!
     createdAt: String!
     published: Boolean!
-    user: User!
+    author: User!
   }
 
   type User {

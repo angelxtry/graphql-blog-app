@@ -2,6 +2,10 @@ import { Post } from '@prisma/client';
 
 import { ErrorType } from '@/types/common';
 
+export interface PostIdInputArgs {
+  postId: string;
+}
+
 export interface CreatePostInputArgs {
   input: {
     title: string;
