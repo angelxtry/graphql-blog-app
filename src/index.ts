@@ -14,7 +14,7 @@ export interface Context {
   userInfo: UserFromToken;
 }
 
-const prisma = new PrismaClient();
+export const prisma = new PrismaClient();
 
 const server = new ApolloServer({
   typeDefs,
