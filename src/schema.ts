@@ -3,8 +3,9 @@ import { gql } from 'apollo-server';
 export const typeDefs = gql`
   type Query {
     me: User
-    posts: [Post!]!
+    posts(pagination: PaginationInput!): PostConnection!
     post(postId: ID!): Post
+    user(userId: ID!): User
     profile(userId: ID!): Profile
   }
 
@@ -32,13 +33,22 @@ export const typeDefs = gql`
     name: String!
     email: String!
     profile: Profile
-    posts: [Post!]!
+    posts(pagination: PaginationInput!): PostConnection!
   }
 
   type Profile {
     id: ID!
     bio: String!
     user: User!
+  }
+
+  type PostEdge {
+    node: Post!
+  }
+
+  type PostConnection {
+    totalCount: Int!
+    edges: [PostEdge!]!
   }
 
   interface ErrorType {
@@ -132,5 +142,10 @@ export const typeDefs = gql`
   input SignInInput {
     email: String!
     password: String!
+  }
+
+  input PaginationInput {
+    limit: Int = 5
+    page: Int = 1
   }
 `;

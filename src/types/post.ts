@@ -2,6 +2,15 @@ import { Post } from '@prisma/client';
 
 import { ErrorType } from '@/types/common';
 
+interface PostEdge {
+  node: Post;
+}
+
+export interface PostConnection {
+  totalCount: number;
+  edges: PostEdge[];
+}
+
 export interface PostIdInputArgs {
   postId: string;
 }

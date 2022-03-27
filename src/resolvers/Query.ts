@@ -1,7 +1,8 @@
 import { Post, Profile, User } from '@prisma/client';
 
 import { Context } from '@/index';
-import { PostIdInputArgs } from '@/types/post';
+import { PaginationInput } from '@/types/common';
+import { PostConnection, PostIdInputArgs } from '@/types/post';
 
 interface UserIdInputArgs {
   userId: string;
@@ -21,6 +22,12 @@ export const Query = {
     });
   },
 
+  user: async (_: any, { userId }: UserIdInputArgs, { prisma }: Context) => {
+    return prisma.user.findUnique({
+      where: { id: Number(userId) },
+    });
+  },
+
   post: (
     _: any,
     { postId }: PostIdInputArgs,
@@ -31,14 +38,27 @@ export const Query = {
     });
   },
 
-  posts: (_: any, __: any, { prisma }: Context): Promise<Post[]> => {
-    return prisma.post.findMany({
-      orderBy: [
-        {
-          createdAt: 'desc',
-        },
-      ],
+  posts: async (
+    _: any,
+    { pagination: { limit, page } }: PaginationInput,
+    { prisma }: Context,
+  ): Promise<PostConnection> => {
+    const pagination = {
+      skip: (page - 1) * limit,
+      take: limit,
+    };
+
+    const totalCount = await prisma.post.count();
+    const posts = await prisma.post.findMany({
+      skip: pagination.skip,
+      take: pagination.take,
     });
+    const edges = posts.map((post) => ({ node: post }));
+
+    return {
+      totalCount,
+      edges,
+    };
   },
 
   profile: async (
